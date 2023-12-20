@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>试题列表</title>
+</head>
+<body>
+    <h2>试题列表</h2>
+    <a href="{% url 'question_management:question_add' %}">添加新试题</a>
+    <ul>
+        {% for question in questions %}
+            <li>
+                {{ question.question_text }} 
+                <a href="{% url 'question_management:question_edit' question.id %}">编辑</a>
+                <a href="{% url 'question_management:question_delete' question.id %}">删除</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
