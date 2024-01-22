@@ -82,11 +82,11 @@ WSGI_APPLICATION = 'CExamSys.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mysql.connector.django',
-        'NAME': 'question_bank',
-        'USER': 'root',
-        'PASSWORD': 'root123',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': 'your_database',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'HOST': 'your_host',
+        'PORT': 'your_port',
         'OPTIONS': {
             'charset': 'utf8mb4',
             
