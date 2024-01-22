@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load custom_filters %}  <!-- 加载自定义过滤器 -->
+{% block content %}
+<div class="container">
+    <h5>{{question.id}}、{{ question.question_text | linebreaksbr}}</h5>
+    <p>答案: {{ question.answer | linebreaksbr }}</p>
+    <small>难度: {{ question.difficulty }} | 章节: {{ question.chapter }}</small>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load custom_filters %}  <!-- 加载自定义过滤器 -->
+{% block content %}
+<div class="container mt-4">
+    <h1>自动生成试卷</h1>
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        <!-- 试卷名称字段 -->
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+            {{ form.title }}
+            {% for error in form.title.errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+        <!-- 总题目数量字段 -->
+        <div class="form-group">
+            <label for="{{ form.total_questions.id_for_label }}">{{ form.total_questions.label }}</label>
+            {{ form.total_questions }}
+            {% for error in form.total_questions.errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+        </div>
+
+        <!-- 题型数量字段 -->
+        {% for field in form %}
+            {% if 'num_questions_' in field.name and 'difficulty' not in field.name and 'chapter' not in field.name %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- 难度数量字段 -->
+        {% for field in form %}
+            {% if 'num_questions_difficulty_' in field.name %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- 章节数量字段 -->
+        {% for field in form %}
+            {% if 'num_questions_chapter_' in field.name %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">生成试卷</button>
+    </form>
+</div>
+{% endblock %}

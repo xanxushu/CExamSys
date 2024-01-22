@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load custom_filters %}  <!-- 加载自定义过滤器 -->
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ paper.title }}</h1>
+    <h2 class="mt-3">试卷详情</h2>
+    {% if ordered_questions %}
+        <div class="list-group mt-3">
+            {% for question_type_display, questions in ordered_questions %}
+                <h3>{{ question_type_display }}</h3>
+                {% for question in questions %}
+                    <div class="list-group-item">
+                        <h5 class="mb-1"><strong>题目:</strong> {{ question.question_text|first_line }}</h5>
+                        {% if request.user.user_type != 3 %}
+                        <p class="mb-1"><strong>答案:</strong> {{ question.answer|first_line }}</p>
+                        {% endif %}
+                        <!-- 显示难度等信息 -->
+                        <small>难度: {{ question.difficulty }} | 章节: {{ question.chapter }}</small>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning mt-3">此试卷没有包含任何题目。</div>
+    {% endif %}
+</div>
+{% endblock %}

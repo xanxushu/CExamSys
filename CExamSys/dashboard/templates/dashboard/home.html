@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load custom_filters %}  <!-- 加载自定义过滤器 -->
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4 text-center">我的主页</h1>
+    
+    <!-- 统计语句 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                现在共有{{ total_questions }}道题目，其中选择题有{{ question_types.SZ }}道，填空题有{{ question_types.TK }}道，判断题有{{ question_types.PD }}道，简答题有{{ question_types.SF }}道。共有{{ total_papers }}套试卷，
+                {% for teacher in papers_per_teacher %}
+                    {{ teacher.created_by__username }}创建的有{{ teacher.count }}套{% if not forloop.last %}，{% endif %}
+                {% endfor %}。
+            </div>
+        </div>
+    </div>
+
+    <!-- 最新题目和试卷 -->
+    <div class="row mt-4">
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">最新试卷</div>
+                <ul class="list-group list-group-flush">
+                    {% for paper in latest_papers %}
+                    <li class="list-group-item">{{ paper.title |first_line }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="card-footer text-right">
+                    <a href="{% url 'paper_generation:paper_list' %}" class="btn btn-primary btn-sm">查看全部</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">最新题目</div>
+                <ul class="list-group list-group-flush">
+                    {% for question in latest_questions %}
+                    <li class="list-group-item">{{ question.question_text |first_line }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="card-footer text-right">
+                    <a href="{% url 'question_management:question_list' %}" class="btn btn-primary btn-sm">查看全部</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计图表 -->
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">题型占比图</h5>
+                    <canvas id="questionTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">章节占比图</h5>
+                    <canvas id="chapterDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">难度区间占比图</h5>
+                    <canvas id="difficultyDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- 试卷难度占比图 -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">试卷难度占比图</h5>
+                    <canvas id="paperdifficultyDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- 题目使用次数 Top 5 图 -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">题目使用次数 Top 5</h5>
+                    <canvas id="questionUsageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <script>
+            var questionTypeData = JSON.parse('{{ question_type_json|safe }}');
+
+            var questionTypeCtx = document.getElementById('questionTypeChart').getContext('2d');
+            var questionTypeChart = new Chart(questionTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: questionTypeData.labels,
+                    datasets: [{
+                        data: questionTypeData.data,
+                        backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)'],
+                        borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                }
+            });
+            // 解析 JSON 数据
+            var chapterDistributionData = JSON.parse('{{ chapter_distribution_json|safe }}');
+            var difficultyDistributionData = JSON.parse('{{ difficulty_distribution_json|safe }}');
+        
+            // 创建章节占比图
+            var chapterDistributionCtx = document.getElementById('chapterDistributionChart').getContext('2d');
+            var chapterDistributionChart = new Chart(chapterDistributionCtx, {
+                type: 'pie',
+                data: {
+                    labels: chapterDistributionData.map(item => item.chapter),
+                    datasets: [{
+                        data: chapterDistributionData.map(item => item.count),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 
+                            'rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 99, 132, 0.2)'
+                        ],
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                }
+            });
+        
+            // 创建难度区间占比图
+            var difficultyDistributionCtx = document.getElementById('difficultyDistributionChart').getContext('2d');
+            var difficultyDistributionChart = new Chart(difficultyDistributionCtx, {
+                type: 'pie',
+                data: {
+                    labels: difficultyDistributionData.labels,
+                    datasets: [{
+                        data: difficultyDistributionData.data,
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.2)', 'rgba(153, 102, 255, 0.2)', 
+                            'rgba(75, 192, 192, 0.2)', 'rgba(255, 206, 86, 0.2)', 
+                            'rgba(54, 162, 235, 0.2)'
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                }
+            });
+
+            // 试卷难度占比图
+            var paperDifficultyData = JSON.parse('{{ paper_difficulty_distribution_json|safe }}');
+            var paperdifficultyCtx = document.getElementById('paperdifficultyDistributionChart').getContext('2d');
+            var paperDifficultyDistributionChart = new Chart(paperdifficultyCtx, {
+                type: 'pie',
+                data: {
+                    labels: paperDifficultyData.labels,
+                    datasets: [{ 
+                        data: paperDifficultyData.data, 
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.2)', 'rgba(153, 102, 255, 0.2)', 
+                            'rgba(75, 192, 192, 0.2)', 'rgba(255, 206, 86, 0.2)', 
+                            'rgba(54, 162, 235, 0.2)'
+                        ],
+                }],
+                options: {
+                    responsive: true,
+                    legend: { position: 'top', },
+                }
+            }});
+
+            // 题目使用次数 Top 5 图
+            var questionUsageData = JSON.parse('{{ question_usage|safe }}');
+            var questionUsageCtx = document.getElementById('questionUsageChart').getContext('2d');
+            new Chart(questionUsageCtx, {
+                type: 'bar',
+                data: {
+                    labels: questionUsageData.map(item => '题目 ' + item.question__id),
+                    datasets: [{ label: '使用次数', data: questionUsageData.map(item => item.usage_count), 
+                    backgroundColor: [
+                            'rgba(255, 159, 64, 0.2)', 'rgba(153, 102, 255, 0.2)', 
+                            'rgba(75, 192, 192, 0.2)', 'rgba(255, 206, 86, 0.2)', 
+                            'rgba(54, 162, 235, 0.2)'
+                        ],
+                 }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        yAxes: [{ ticks: { beginAtZero: true } }]
+                    }
+                }
+            });
+        </script>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load custom_filters %}  <!-- 加载自定义过滤器 -->
+{% block content %}
+<div class="container mt-4">
+    <h1>试卷列表</h1>
+    
+    <!-- 搜索容器 -->
+    <div class="search-container mb-3">
+        <form method="get" action="{% url 'paper_generation:paper_list' %}" class="form-inline">
+            <input type="text" name="search" placeholder="搜索试卷..." class="form-control mr-2">
+            <button type="submit" class="btn btn-primary">搜索</button>
+        </form>
+    </div>
+
+    <!-- 操作链接 -->
+    {% if request.user.user_type != 3 %}
+        <div class="mb-3">
+            <a href="{% url 'paper_generation:paper_add' %}" class="btn btn-success mr-2">创建新试卷</a>
+            <a href="{% url 'paper_generation:auto_generate_paper' %}" class="btn btn-info">自动生成试卷</a>
+        </div>
+    {% endif %}
+
+    <!-- 试卷列表 -->
+    <div class="list-group">
+        {% for paper in papers %}
+            <div class="list-group-item flex-column align-items-start">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">
+                        <a href="{% url 'paper_generation:paper_detail' paper.id %}" class="text-dark">{{ paper.title }}</a>
+                    </h5>
+                    {% if request.user.user_type != 3 %}
+                        <small>
+                            <a href="{% url 'paper_generation:paper_edit' paper.id %}" class="text-primary mr-2">编辑</a>
+                            <a href="{% url 'paper_generation:paper_delete' paper.id %}" class="text-danger">删除</a>
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="list-group-item">没有找到试卷。</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

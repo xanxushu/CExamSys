@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>登录</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    {% if messages %}
+    <div id="message-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-container">
+        <h2>登录</h2>
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <p>
+                <label for="id_username">用户名:</label>
+                <input type="text" name="username" id="id_username" required>
+            </p>
+            <p>
+                <label for="id_password">密码:</label>
+                <input type="password" name="password" id="id_password" required>
+            </p>
+            <button type="submit">登录</button>
+        </form>
+    </div>
+    
+</body>
+</html>
